@@ -11,19 +11,13 @@ def to_one_hot(data_point_index, vocab_size):
 
 f=open('data.txt','r')
 
-r=[]
-for l in f:
-	r.append(((((l.strip()).lower()).split('.'))[0]).split())
-
+r = [((((l.strip()).lower()).split('.'))[0]).split() for l in f]
 # print(r)
 
 all_words = []
 
-for idx1,i in enumerate(r):
-	for idx2,j in enumerate(i):
-		all_words.append(j)
-
-
+for i in r:
+    all_words.extend(iter(i))
 all_words = set(all_words)
 
 word2int = {}
@@ -39,11 +33,16 @@ data = []
 WINDOW_SIZE = 3
 for sentence in r:
     for word_index, word in enumerate(sentence):
-        for nb_word in sentence[max(word_index - WINDOW_SIZE, 0) : min(word_index + WINDOW_SIZE, len(sentence)) + 1] : 
-            if nb_word != word:
-                data.append([word, nb_word])
-
-
+        data.extend(
+            [word, nb_word]
+            for nb_word in sentence[
+                max(word_index - WINDOW_SIZE, 0) : min(
+                    word_index + WINDOW_SIZE, len(sentence)
+                )
+                + 1
+            ]
+            if nb_word != word
+        )
 # print(data)
 
 x_train = []
@@ -63,9 +62,9 @@ y_train = np.asarray(y_train)
 x = tf.placeholder(tf.float32, shape=(None, vocab_size))
 y_label = tf.placeholder(tf.float32, shape=(None, vocab_size))
 
-EMBEDDING_DIM = 8 
+EMBEDDING_DIM = 8
 W1 = tf.Variable(tf.random_normal([vocab_size, EMBEDDING_DIM]))
-b1 = tf.Variable(tf.random_normal([EMBEDDING_DIM])) 
+b1 = tf.Variable(tf.random_normal([EMBEDDING_DIM]))
 hidden_representation = tf.add(tf.matmul(x,W1), b1)
 
 W2 = tf.Variable(tf.random_normal([EMBEDDING_DIM, vocab_size]))
